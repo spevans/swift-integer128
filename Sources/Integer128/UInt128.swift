@@ -449,7 +449,7 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
 
                 switch subPart {
                     case 0: return _value._loBits.words[index]
-                    case 1: return _value._loBits.words[index]
+                    case 1: return _value._hiBits.words[index]
                     default: fatalError("Invalid index")
                 }
             }

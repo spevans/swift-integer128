@@ -61,6 +61,21 @@ final class UInt128Tests: XCTestCase {
     }
 
     func testByteSwapped() {
+        // Hi in, Lo in, Hi out, Lo out
+        let testData: [(UInt64, UInt64, UInt64, UInt64)] = [
+            (0x1234567890abcdef,    0,                  0,                  0xefcdab9078563412),
+            (0x0,                   0x1234567890abcdef, 0xefcdab9078563412, 0),
+            (0x1020304050607080,    0x9000a0b0c0d0e0f0, 0xf0e0d0c0b0a00090, 0x8070605040302010),
+            (0x12000000000000ab,    0xcd00000000000034, 0x34000000000000cd, 0xab00000000000012),
+            (0x0               ,    0x0               , 0x0               , 0x0               ),
+            (0xffffffffffffffff,    0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff),
+        ]
+
+        for test in testData {
+            let number = UInt128(_hiBits: test.0, _loBits: test.1).byteSwapped
+            XCTAssertEqual(number._hiBits, test.2, "\(String(number._hiBits, radix:16)) != \(String(test.2, radix:16))")
+            XCTAssertEqual(number._loBits, test.3, "\(String(number._loBits, radix:16)) != \(String(test.3, radix:16))")
+        }
     }
 
     func testMisc() throws {
@@ -167,6 +182,33 @@ final class UInt128Tests: XCTestCase {
     }
 
     func testWords() {
+
+        if  UInt64.bitWidth == UInt.bitWidth {
+            XCTAssertEqual(UInt128.zero.words.count, 2)
+        } else {
+            XCTAssertEqual(UInt128.zero.words.count, 4)
+        }
+
+        let testData: [(UInt64, UInt64)] = [
+            (0x12345678,    0x90abcdef),
+            (UInt64.max,    UInt64.min),
+            (UInt64.min,    UInt64.max),
+        ]
+
+        for test in testData {
+            let number = UInt128(_hiBits: test.0, _loBits: test.1)
+            if UInt64.bitWidth == UInt.bitWidth {
+                print(String(number.words[0], radix: 16))
+                print(String(number.words[1], radix: 16))
+                XCTAssertEqual(number.words[0], test.1.words[0])
+                XCTAssertEqual(number.words[1], test.0.words[0])
+            } else {
+                XCTAssertEqual(number.words[0], test.1.words[0])
+                XCTAssertEqual(number.words[1], test.0.words[1])
+                XCTAssertEqual(number.words[2], test.1.words[0])
+                XCTAssertEqual(number.words[3], test.0.words[1])
+            }
+        }
     }
 
 
