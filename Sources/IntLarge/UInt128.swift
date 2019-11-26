@@ -1,6 +1,6 @@
 //
 //  UInt128.swift
-//  Integer128
+//  IntLarge
 //
 //  Created by Simon Evans on 03/10/2019.
 //  Copyright (c) 2019 Simon Evans

@@ -1,4 +1,4 @@
-# Integer128
+# IntLarge
 
 Implementation of UInt128 for Swift.
 
