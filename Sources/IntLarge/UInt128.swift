@@ -40,7 +40,7 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
 
 
     public init?<S>(_ text: S, radix: Int = 10) where S: StringProtocol {
-        precondition(radix >= 2 && radix <= 36, "Invalid radix")
+        precondition(2...36 ~= radix, "Invalid radix")
 
         // Skip optional initial '+'
         let index = text.hasPrefix("+") ? text.index(after: text.startIndex) : text.startIndex
@@ -60,9 +60,6 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
 
             var tmp = 0
             switch ch {
-                case UInt8(ascii: "+"):
-                    continue
-
                 case zeroCh...UInt8(ascii: "9"):
                     tmp = Int(ch - zeroCh)
 
@@ -103,7 +100,7 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
         }
     }
 
-    private var isZero: Bool { (_loBits != 0 || _hiBits != 0) ? false : true }
+    internal var isZero: Bool { (_loBits != 0 || _hiBits != 0) ? false : true }
 
     public var nonzeroBitCount: Int {
         _loBits.nonzeroBitCount + _hiBits.nonzeroBitCount
@@ -160,6 +157,13 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
 
     public func multipliedFullWidth(by other: Self) -> (high: Self, low: Self.Magnitude) {
         if self.isZero || other.isZero { return (high: Self.zero, low: Self.zero) }
+
+        if self._hiBits == 0 && other._hiBits == 0 {
+            // Fast path for UInt64 x UInt64
+            let (high, low) = self._loBits.multipliedFullWidth(by: other._loBits)
+            return (.zero, UInt128(_hiBits: high, _loBits: low))
+        }
+
         let (hi0, lo0) = _loBits.multipliedFullWidth(by: other._loBits)
         let (hi1, lo1) = _loBits.multipliedFullWidth(by: other._hiBits)
         let (hi2, lo2) = _hiBits.multipliedFullWidth(by: other._loBits)
@@ -199,7 +203,7 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
                 return (self, .zero)
             }
             let quotient = self >> Self(value: tzbc)
-            let remainder = self & Self(value: tzbc - 1)
+            let remainder = self & (rhs - 1)
             return (quotient, remainder)
         }
 
