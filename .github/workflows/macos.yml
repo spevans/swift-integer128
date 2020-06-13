@@ -1,4 +1,4 @@
-name: TestMacos
+name: macOS
 
 on: [push]
 

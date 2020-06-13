@@ -1,4 +1,4 @@
-name: TestLinux
+name: Linux
 
 on: [push]
 

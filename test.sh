@@ -3,6 +3,7 @@
 MACOS_TESTS="Passed"
 LINUX_TESTS="Passed"
 
+swift package clean
 swift test || MACOS_TESTS="Failed"
 docker build --tag=integer128-tests:$(date +%s) . || LINUX_TESTS="Failed"
 
