@@ -1,32 +1,42 @@
 //
-//  UInt128.swift
+//  Int128.swift
 //  IntLarge
 //
-//  Created by Simon Evans on 03/10/2019.
-//  Copyright (c) 2019 Simon Evans
+//  Created by Simon Evans on 06/06/2022.
+//  Copyright (c) 2019 - 2020 Simon Evans
 //
-//  Implementation of UInt128.
+//  Implementation of Int128.
 //
 
-public struct UInt128: FixedWidthInteger, UnsignedInteger {
+public struct Int128: FixedWidthInteger, SignedInteger {
 
-    public typealias IntegerLiteralType = UInt64
+    public typealias IntegerLiteralType = Int64
     public typealias Magnitude = UInt128
-    internal typealias HiSubPart = UInt64
+    internal typealias HiSubPart = Int64
     internal typealias LoSubPart = UInt64
 
     internal let _hiBits: HiSubPart
     internal let _loBits: LoSubPart
 
+    internal static var negativeOne: Self { Self(_hiBits: -1, _loBits: LoSubPart.max) }
+    internal static var positiveOne: Self { Self(_hiBits: 0, _loBits: 1) }
+
     public static var bitWidth: Int { 128 }
     public static var zero: Self { Self(_hiBits: 0, _loBits: 0) }
-    public static var min: Self { zero }
+
+    public static var min: Self { Self(_hiBits: HiSubPart.min, _loBits: 0) }
     public static var max: Self { Self(_hiBits: HiSubPart.max, _loBits: LoSubPart.max) }
 
 
-    public init(integerLiteral value: UInt64) {
-        _loBits = value
-        _hiBits = 0
+    public init(integerLiteral value: Int64) {
+        if value.signum() == -1 {
+            _loBits = value.magnitude
+            _hiBits = 0
+            self.negate()
+        } else {
+            _loBits = LoSubPart(value)
+            _hiBits = 0
+        }
     }
 
     public init(_truncatingBits bits: UInt) {
@@ -34,7 +44,7 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
         self._hiBits = 0
     }
 
-    public init(bitPattern x: Int128) {
+    public init(bitPattern x: UInt128) {
         self._loBits = LoSubPart(x._loBits)
         self._hiBits = HiSubPart(bitPattern: x._hiBits)
     }
@@ -47,8 +57,9 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
     public init?<S>(_ text: S, radix: Int = 10) where S: StringProtocol {
         precondition(2...36 ~= radix, "Invalid radix")
 
-        // Skip optional initial '+'
-        let index = text.hasPrefix("+") ? text.index(after: text.startIndex) : text.startIndex
+        // Skip optional initial '-' / '+'
+        let negate = text.hasPrefix("-")
+        let index = text.hasPrefix("+") || text.hasPrefix("-") ? text.index(after: text.startIndex) : text.startIndex
 
         guard index < text.endIndex else { return nil }
         let _radix = Self(_truncatingBits: UInt(radix))
@@ -80,7 +91,7 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
             guard tmp < radix else { return nil }
             value += Self(_hiBits: 0, _loBits: LoSubPart(tmp))
         }
-        self = value
+        self = negate ? 0 - value : value
     }
 
     internal init(_hiBits: HiSubPart, _loBits: LoSubPart) {
@@ -128,7 +139,24 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
     }
 
     public var byteSwapped: Self {
-        Self(_hiBits: _loBits.byteSwapped, _loBits: _hiBits.byteSwapped)
+        Self(_hiBits: HiSubPart(bitPattern: _loBits.byteSwapped), _loBits: LoSubPart(bitPattern: _hiBits.byteSwapped))
+    }
+
+    public var magnitude: UInt128 {
+        if self == Self.min { return UInt128(bitPattern: Int128.max) + 1 }
+
+        var value = self
+        if _hiBits.signum() == -1 {
+            value.negate()
+        }
+
+        return UInt128(_hiBits: UInt64(value._hiBits), _loBits: value._loBits)
+    }
+
+    public var signum: Self {
+        if _hiBits < 0 { return  Int128.negativeOne }
+        else if self.isZero { return Int128.zero }
+        else { return Int128.positiveOne }
     }
 
     public func addingReportingOverflow(_ rhs: Self) -> (partialValue: Self, overflow: Bool) {
@@ -157,40 +185,55 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
 
     public func multipliedReportingOverflow(by rhs: Self) -> (partialValue: Self, overflow: Bool) {
         let (high, low) = multipliedFullWidth(by: rhs)
-        return (low, high != Self.zero)
+        // Check for overflow by testing the high bit of the low result has been sign extended into the high result.
+        var overflow = false
+        let partialValue = Self(bitPattern: low)
+        if partialValue._hiBits < 0 {
+            overflow = (high != Self.negativeOne)
+        } else {
+            overflow = (high != Self.zero)
+        }
+        return (partialValue, overflow)
+    }
+
+    private func checkForNegative(_ lhs: Int128, _ rhs: Int128) -> (UInt128, UInt128, Bool) {
+        var negateResult = false
+
+        if lhs.signum < 0 {
+            negateResult.toggle()
+        }
+
+        if rhs.signum < 0 {
+            negateResult.toggle()
+        }
+        return (lhs.magnitude, rhs.magnitude, negateResult)
+    }
+
+    private func negateFullWidth(high: UInt128, low: UInt128) -> (high: Self, low: Self.Magnitude) {
+        // negate a UInt128 to a Int128 converting using 2s complement
+        var _low = ~low
+        var _high = ~high
+
+        var overflow = false
+        (_low, overflow) = _low.addingReportingOverflow(Self.Magnitude(1))
+        if overflow {
+            (_high, overflow) = _high.addingReportingOverflow(UInt128(1))
+            precondition(!overflow)
+        }
+        return (Int128(bitPattern: _high), _low)
     }
 
     public func multipliedFullWidth(by other: Self) -> (high: Self, low: Self.Magnitude) {
-        if self.isZero || other.isZero { return (high: Self.zero, low: Self.zero) }
+        if self.isZero || other.isZero { return (high: Self.zero, low: Self.Magnitude.zero) }
 
-        if self._hiBits == 0 && other._hiBits == 0 {
-            // Fast path for UInt64 x UInt64
-            let (high, low) = self._loBits.multipliedFullWidth(by: other._loBits)
-            return (.zero, UInt128(_hiBits: high, _loBits: low))
+        // multiply the magnitudes of lhs, rhs as UInt128 -> UInt128 result, negagte the result if one of lhs/rhs was negative.
+        let (lhs, rhs, negateResult) = checkForNegative(self, other)
+        let (high, low) = lhs.multipliedFullWidth(by: rhs)
+        if negateResult {
+            return negateFullWidth(high: high, low: low)
+        } else {
+            return (Int128(bitPattern: high), low)
         }
-
-        let (hi0, lo0) = _loBits.multipliedFullWidth(by: other._loBits)
-        let (hi1, lo1) = _loBits.multipliedFullWidth(by: other._hiBits)
-        let (hi2, lo2) = _hiBits.multipliedFullWidth(by: other._loBits)
-        let (hi3, lo3) = _hiBits.multipliedFullWidth(by: other._hiBits)
-
-        var carry: LoSubPart = 0
-        var low = Self(_hiBits: hi0, _loBits: lo0)
-        var high = Self(_hiBits: hi3, _loBits: lo3)
-
-        var overflow = false
-        (low, overflow) = low.addingReportingOverflow(Self(_hiBits: lo1, _loBits: 0))
-        carry += overflow ? 1 : 0
-        (low, overflow) = low.addingReportingOverflow(Self(_hiBits: lo2, _loBits: 0))
-        carry += overflow ? 1 : 0
-
-        high += Self(_hiBits: 0, _loBits: hi1)
-        high += Self(_hiBits: 0, _loBits: hi2)
-        if carry > 0 {
-            high += Self(_hiBits: 0, _loBits: carry)
-        }
-
-        return (high, low)
     }
 
     public func quotientAndRemainder(dividingBy rhs: Self) -> (quotient: Self, remainder: Self) {
@@ -262,6 +305,9 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
         return lessThan
     }
 
+    mutating public func negate() {
+        self = 0 - self
+    }
 
     // Operators
     public static func + (lhs: Self, rhs: Self) -> Self {
@@ -349,10 +395,10 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
 
         if shift > _subPartBitWidth {
             let loBits = lhs._hiBits >> (shift - _subPartBitWidth)
-            return Self(_hiBits: 0, _loBits: loBits)
+            return Self(_hiBits: 0, _loBits: LoSubPart(bitPattern: loBits))
         } else {
             var loBits = lhs._loBits >> shift
-            loBits |= lhs._hiBits << (_subPartBitWidth - shift)
+            loBits |= LoSubPart(bitPattern: lhs._hiBits << (_subPartBitWidth - shift))
             let hiBits = lhs._hiBits >> shift
             return Self(_hiBits: hiBits, _loBits: loBits)
         }
@@ -384,10 +430,10 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
 
         if shift > _subPartBitWidth {
             let hiBits = lhs._loBits << (shift - _subPartBitWidth)
-            return Self(_hiBits: hiBits, _loBits: 0)
+            return Self(_hiBits: HiSubPart(bitPattern: hiBits), _loBits: 0)
         } else {
             var hiBits = lhs._hiBits << shift
-            hiBits |= lhs._loBits >> (_subPartBitWidth - shift)
+            hiBits |= HiSubPart(bitPattern: lhs._loBits >> (_subPartBitWidth - shift))
             let loBits = lhs._loBits << shift
             return Self(_hiBits: hiBits, _loBits: loBits)
         }
@@ -418,10 +464,10 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
         public typealias SubSequence = Slice<UInt128.Words>
 
         @usableFromInline
-        internal var _value: UInt128
+        internal var _value: Int128
 
         @inlinable
-        public init(_ value: UInt128) {
+        public init(_ value: Int128) {
             self._value = value
         }
 
@@ -472,15 +518,21 @@ public struct UInt128: FixedWidthInteger, UnsignedInteger {
 
 
 extension Int {
-    init?(exactly n: UInt128) {
-        guard n._hiBits == 0, let x = Int(exactly: n._loBits) else { return nil }
-        self = x
+    init?(exactly n: Int128) {
+
+        if n._hiBits == 0, let x = Int(exactly: n._loBits), x >= 0 {
+            self = x
+        } else if n._hiBits == -1, let x = Int(exactly: n._loBits), x < 0 {
+            self = x
+        } else {
+            return nil
+        }
     }
 }
 
 
 extension UInt {
-    init?(exactly n: UInt128) {
+    init?(exactly n: Int128) {
         guard n._hiBits == 0, let x = UInt(exactly: n._loBits) else { return nil }
         self = x
     }
