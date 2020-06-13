@@ -12,16 +12,6 @@ import XCTest
 @testable import IntLarge
 
 
-extension Int128 {
-    var loBits: UInt64 { self.words.count == 2 ? UInt64(self.words[0]) : UInt64(self.words[1]) << 32 | UInt64(self.words[0]) }
-    var hiBits: Int64 { self.words.count == 2 ? Int64(bitPattern: UInt64(self.words[1])) : Int64(bitPattern: UInt64(self.words[3])) << 32 | Int64(bitPattern: UInt64(self.words[2])) }
-
-    init(_hiBits: Int64, _loBits: UInt64) {
-        self = Int128(_hiBits) << 64 | Int128(_loBits)
-    }
-}
-
-
 final class Int128Tests: XCTestCase {
 
     private func asHex(_ number: UInt64) -> String {
@@ -97,7 +87,7 @@ final class Int128Tests: XCTestCase {
         ]
 
         for data in testData {
-            let number = Int128(_hiBits: data.0, _loBits: data.1)
+            let number = Int128(hiBits: data.0, loBits: data.1)
             XCTAssertEqual(number.leadingZeroBitCount, data.2, "Leading Zero Bit Count of \(asBinary(number)) != \(data.2)")
             XCTAssertEqual(number.trailingZeroBitCount, data.3, "Trailing Zero Bit Count of \(asBinary(number)) != \(data.3)")
             XCTAssertEqual(number.nonzeroBitCount, data.4, "Non-Zero Bit Count of \(asBinary(number)) != \(data.4)")
@@ -116,7 +106,7 @@ final class Int128Tests: XCTestCase {
         ]
 
         for data in testData {
-            let number = Int128(_hiBits: data.0, _loBits: data.1).byteSwapped
+            let number = Int128(hiBits: data.0, loBits: data.1).byteSwapped
             XCTAssertEqual(number.hiBits, data.2, "\(String(number.hiBits, radix:16)) != \(String(data.2, radix:16))")
             XCTAssertEqual(number.loBits, data.3, "\(String(number.loBits, radix:16)) != \(String(data.3, radix:16))")
         }
@@ -172,7 +162,7 @@ final class Int128Tests: XCTestCase {
         XCTAssertEqual(Int128(-1).signum.description, "-1")
         XCTAssertEqual(Int128(Int64.min).signum, Int128(-1))
 
-        XCTAssertEqual(Int128(_hiBits: -1, _loBits: UInt64.max).description, "-1")
+        XCTAssertEqual(Int128(hiBits: -1, loBits: UInt64.max).description, "-1")
         XCTAssertEqual(Int128(Int64.max).description, Int64.max.description)
         XCTAssertEqual((Int128(UInt64.max) + 1).description, "18446744073709551616")
         XCTAssertEqual(Int128.min.description, "-170141183460469231731687303715884105728")
@@ -226,8 +216,8 @@ final class Int128Tests: XCTestCase {
         ]
 
         for data in testData {
-            let number1 = Int128(_hiBits: data.0, _loBits: data.1)
-            let number2 = Int128(_hiBits: data.2, _loBits: data.3)
+            let number1 = Int128(hiBits: data.0, loBits: data.1)
+            let number2 = Int128(hiBits: data.2, loBits: data.3)
             let (sum, carry) = number1.addingReportingOverflow(number2)
             XCTAssertEqual(sum.hiBits, data.4)
             XCTAssertEqual(sum.loBits, data.5)
@@ -245,8 +235,8 @@ final class Int128Tests: XCTestCase {
         ]
 
         for data in testData {
-            let number1 = Int128(_hiBits: data.0, _loBits: data.1)
-            let number2 = Int128(_hiBits: data.2, _loBits: data.3)
+            let number1 = Int128(hiBits: data.0, loBits: data.1)
+            let number2 = Int128(hiBits: data.2, loBits: data.3)
             let (difference, borrow) = number1.subtractingReportingOverflow(number2)
             XCTAssertEqual(difference.hiBits, data.4)
             XCTAssertEqual(difference.loBits, data.5)
@@ -263,8 +253,8 @@ final class Int128Tests: XCTestCase {
         ]
 
         for data in testData {
-            let factor1 = Int128(_hiBits: data.0, _loBits: data.1)
-            let factor2 = Int128(_hiBits: data.2, _loBits: data.3)
+            let factor1 = Int128(hiBits: data.0, loBits: data.1)
+            let factor2 = Int128(hiBits: data.2, loBits: data.3)
             let (productHigh, productLow) = factor1.multipliedFullWidth(by: factor2)
             XCTAssertEqual(productHigh.hiBits, data.4)
             XCTAssertEqual(productHigh.loBits, data.5)
@@ -310,8 +300,8 @@ final class Int128Tests: XCTestCase {
         ]
 
         for test in testData {
-            let dividend = Int128(_hiBits: test.0, _loBits: test.1)
-            let divisor = Int128(_hiBits: test.2, _loBits: test.3)
+            let dividend = Int128(hiBits: test.0, loBits: test.1)
+            let divisor = Int128(hiBits: test.2, loBits: test.3)
             let (quotient, qOverflow) = dividend.dividedReportingOverflow(by: divisor)
             XCTAssertEqual(quotient.hiBits, test.4, "\(asHex(dividend)) / \(asHex(divisor)), Quotient Hi: \(asHex(quotient.hiBits)) != \(asHex(test.4))")
             XCTAssertEqual(quotient.loBits, test.5, "\(asHex(dividend)) / \(asHex(divisor)), Quotient Lo: \(asHex(quotient.loBits)) != \(asHex(test.5))")
@@ -356,8 +346,8 @@ final class Int128Tests: XCTestCase {
         ]
 
         for test in testData {
-            let lhs = Int128(_hiBits: test.0, _loBits: test.1)
-            let rhs = Int128(_hiBits: test.2, _loBits: test.3)
+            let lhs = Int128(hiBits: test.0, loBits: test.1)
+            let rhs = Int128(hiBits: test.2, loBits: test.3)
             let (equal, lessThan, greaterThan) = (test.4, test.5, test.6)
 
             if equal {
@@ -396,14 +386,14 @@ final class Int128Tests: XCTestCase {
         ]
 
         for data in testData {
-            let number1 = Int128(_hiBits: Int64(bitPattern: data.0), _loBits: data.1)
-            let number2 = Int128(_hiBits: Int64(bitPattern: data.2), _loBits: data.3)
+            let number1 = Int128(hiBits: Int64(bitPattern: data.0), loBits: data.1)
+            let number2 = Int128(hiBits: Int64(bitPattern: data.2), loBits: data.3)
             let op = data.4
             let result = op(number1, number2)
 
             XCTAssertEqual(result.hiBits, Int64(bitPattern: data.5))
             XCTAssertEqual(result.loBits, data.6)
-            let check = Int128(_hiBits: Int64(bitPattern: data.5), _loBits: data.6)
+            let check = Int128(hiBits: Int64(bitPattern: data.5), loBits: data.6)
             XCTAssertEqual(check, result)
             let op2 = data.7
             var result2 = number1
@@ -424,7 +414,7 @@ final class Int128Tests: XCTestCase {
         ]
 
         for data in testInvertData {
-            let number1 = Int128(_hiBits: Int64(bitPattern: data.0), _loBits: data.1)
+            let number1 = Int128(hiBits: Int64(bitPattern: data.0), loBits: data.1)
             let result = ~number1
 
             XCTAssertEqual(result.hiBits, Int64(bitPattern: data.2), "\(asHex(UInt64(bitPattern: result.hiBits))) != \(asHex(data.2))")
