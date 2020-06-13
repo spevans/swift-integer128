@@ -1,7 +1,7 @@
 import XCTest
 
-import IntLargeTests
+import Integer128Tests
 
 var tests = [XCTestCaseEntry]()
-tests += IntLargeTests.allTests()
+tests += Integer128Tests.allTests()
 XCTMain(tests)

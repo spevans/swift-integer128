@@ -1,9 +1,9 @@
-# IntLarge
+# Integer128
 
-Implementation of UInt128 for Swift.
+Implementation of Int128 and UInt128 for Swift.
 
 Requires Swift 5.1, all platforms supported.
 
 Current version 0.0.1
 
-Copyright (c) 2019 Simon Evans.
+Copyright (c) 2019 - 2020 Simon Evans.

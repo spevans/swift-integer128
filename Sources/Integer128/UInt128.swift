@@ -1,9 +1,9 @@
 //
 //  UInt128.swift
-//  IntLarge
+//  Integer128
 //
 //  Created by Simon Evans on 03/10/2019.
-//  Copyright (c) 2019 Simon Evans
+//  Copyright (c) 2019 - 2020 Simon Evans
 //
 //  Implementation of UInt128.
 //

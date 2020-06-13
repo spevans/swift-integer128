@@ -1,6 +1,6 @@
 //
 //  Int128Tests.swift
-//  IntLarge
+//  Integer128
 //
 //  Created by Simon Evans on 06/06/2020.
 //  Copyright (c) 2019 - 2020 Simon Evans
@@ -9,7 +9,7 @@
 //
 
 import XCTest
-@testable import IntLarge
+@testable import Integer128
 
 
 final class Int128Tests: XCTestCase {

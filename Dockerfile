@@ -1,4 +1,4 @@
-# Run using: docker build --tag=intlarge-tests:$(date +%s) .
+# Run using: docker build --tag=integer128-tests:$(date +%s) .
 FROM swift:5.1.2
 
 COPY . /root/

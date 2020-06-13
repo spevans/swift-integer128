@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "IntLarge"
-               BuildableName = "IntLarge"
-               BlueprintName = "IntLarge"
+               BlueprintIdentifier = "Integer128"
+               BuildableName = "Integer128"
+               BlueprintName = "Integer128"
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
@@ -28,9 +28,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "IntLargeTests"
-               BuildableName = "IntLargeTests"
-               BlueprintName = "IntLargeTests"
+               BlueprintIdentifier = "Integer128Tests"
+               BuildableName = "Integer128Tests"
+               BlueprintName = "Integer128Tests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
@@ -47,9 +47,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "IntLargeTests"
-               BuildableName = "IntLargeTests"
-               BlueprintName = "IntLargeTests"
+               BlueprintIdentifier = "Integer128Tests"
+               BuildableName = "Integer128Tests"
+               BlueprintName = "Integer128Tests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
@@ -75,9 +75,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "IntLarge"
-            BuildableName = "IntLarge"
-            BlueprintName = "IntLarge"
+            BlueprintIdentifier = "Integer128"
+            BuildableName = "Integer128"
+            BlueprintName = "Integer128"
             ReferencedContainer = "container:">
          </BuildableReference>
       </MacroExpansion>

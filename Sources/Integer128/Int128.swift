@@ -1,6 +1,6 @@
 //
 //  Int128.swift
-//  IntLarge
+//  Integer128
 //
 //  Created by Simon Evans on 06/06/2022.
 //  Copyright (c) 2019 - 2020 Simon Evans
