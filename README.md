@@ -17,11 +17,15 @@ To use the `Integer128` library in a SwiftPM project,
 add the following line to the dependencies in your `Package.swift` file:
 
 ```swift
-.package(url: "https://github.com/spevans/swift-integer128", .upToNextMinor(from: "0.0.2")),
+.package(url: "https://github.com/spevans/swift-integer128", .branch("main")),
 ```
 
 
 Then include `"Integer128"` as a dependency for your executable target:
+
+```swift
+.product(name: "Integer128", package: "swift-integer128")
+```
 
 ```swift
 let package = Package(
@@ -34,7 +38,7 @@ let package = Package(
             targets: ["int128test"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/spevans/swift-integer128", .upToNextMinor(from: "0.0.2")),
+        .package(url: "https://github.com/spevans/swift-integer128", .branch("main")),
 
     ],
     targets: [

@@ -1,3 +1,4 @@
 - Add fast paths for multiply and divide by 10 and powers of 2
 - Add more tests and benchmarks
 - Look at using __int128 and __uint128_t with C for some speedups on 64bit
+- dividingFullWidth() needs implementing
