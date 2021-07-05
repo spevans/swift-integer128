@@ -1,6 +1,7 @@
-# Run using: docker build --tag=integer128-tests:$(date +%s) -f Dockerfile-5.3 .
+# Run using: docker build --tag=integer128-tests-5-3:$(date +%s) -f Dockerfile-5.3 .
 FROM swift:5.3.3
 
 COPY . /root/
 WORKDIR /root
+RUN echo "$CACHEBUST5_3"
 RUN swift test -v

@@ -2,8 +2,8 @@
 
 Implementation of Int128 and UInt128 for Swift.
 
-![macOS](https://github.com/spevans/swift-integer128/workflows/macOS/badge.svg)
-![Linux](https://github.com/spevans/swift-integer128/workflows/Linux/badge.svg)
+[![macOS](https://github.com/spevans/swift-integer128/workflows/macOS/badge.svg)](https://github.com/spevans/swift-integer128/actions/workflows/macos.yml)
+[![Linux](https://github.com/spevans/swift-integer128/workflows/Linux/badge.svg)](https://github.com/spevans/swift-integer128/actions/workflows/linux.yml)
 
 
 Requires Swift 5.1, all platforms supported.

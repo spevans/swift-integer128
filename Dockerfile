@@ -3,4 +3,5 @@ FROM swift:latest
 
 COPY . /root/
 WORKDIR /root
+RUN echo "$CACHEBUST"
 RUN swift test -v
